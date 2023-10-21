@@ -7,8 +7,9 @@ TODO:
 -add CORS to server
 """
 from typing import Union
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import databases
 import sqlalchemy
 from sqlalchemy.sql import text
@@ -35,14 +36,37 @@ engine = sqlalchemy.create_engine(
 
 app = FastAPI()
 
+origins = [
+    "http://localhost",
+    "*"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class Item(BaseModel):
     id: int
     data: str
     token: Union[str, None] = None
 
 class ItemIn(BaseModel):
-    data: str
-    token: Union[str, None] = None
+    data: str = Field(description="data from sensors in csv format")
+    token: Union[str, None] = Field(default=None,description="token passed with data incoming")
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "data": "1696689942.2266796,72.11,9.0,3.6\n1696689943.2266796,34.46,9.9,2.5\n1696689944.2266796,78.35,1.2,0.1",
+                    "token": "asaefsegeagw",
+                }
+            ]
+        }
+    }
 
 @app.on_event("startup")
 async def startup():

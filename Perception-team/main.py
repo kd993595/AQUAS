@@ -9,11 +9,11 @@ if not check_file:
   print("image file does not exist")
   exit()
 
-model = YOLO("turtle_bestv8n.pt")
+model = YOLO("turtle_bestv8s.pt")
 #model.export(format='onnx',half=True,int8=True)
 
 
-results = model.predict(path)
+results = model.predict(path,conf=0.65,device=0)#uses gpu
 result = results[0]
 #print(len(result.boxes)) #prints how many objects detected
 #print(result.names) #prints all the class names
@@ -33,4 +33,4 @@ for box in result.boxes:
 #print(rgba.shape)
 im = Image.fromarray(result.plot()[:,:,::-1])
 im.show()
-im.save("output-"+path)
+#im.save("output-"+path)
