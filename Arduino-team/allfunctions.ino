@@ -16,7 +16,7 @@ unsigned long int avgValue;
 // TDS sensor definitions
 #define TdsSensorPin A1
 #define VREF 5.0
-#define SCOUNT 30
+#define SCOUNT 20
 int analogBuffer[SCOUNT];
 int analogBufferTemp[SCOUNT];
 int analogBufferIndex = 0, copyIndex = 0;
@@ -59,7 +59,6 @@ void loop()
     if(state == 0){
       Serial.println("case 0");
     }else if(state == 1){
-      delay(100);
       Serial.println("case 1");
       // pH Measurement
       int buf[10];
@@ -92,38 +91,30 @@ void loop()
       float tempC = sensors.getTempCByIndex(0);
       float tempF = (tempC * 9.0) / 5.0 + 32.0;
 
-      // TDS Measurement
-      static unsigned long analogSampleTimepoint = millis();
-      if (millis() - analogSampleTimepoint > 40U)
-      {
-        analogSampleTimepoint = millis();
+      // TDS Measurement      
+      analogBufferIndex = 0;
+      for (copyIndex = 0; copyIndex < SCOUNT; copyIndex++){
         analogBuffer[analogBufferIndex] = analogRead(TdsSensorPin);
         analogBufferIndex++;
-        if (analogBufferIndex == SCOUNT)
-          analogBufferIndex = 0;
+        delay(5);
       }
-      static unsigned long printTimepoint = millis();
-      if (millis() - printTimepoint > 800U)
-      {
-        printTimepoint = millis();
-        for (copyIndex = 0; copyIndex < SCOUNT; copyIndex++)
-          analogBufferTemp[copyIndex] = analogBuffer[copyIndex];
-        averageVoltage = getMedianNum(analogBufferTemp, SCOUNT) * VREF / 1024.0;
-        float compensationCoefficient = 1.0 + 0.02 * (tempC - 25.0);
-        float compensationVoltage = averageVoltage / compensationCoefficient;
-        tdsValue = (133.42 * compensationVoltage * compensationVoltage * compensationVoltage - 255.86 * compensationVoltage * compensationVoltage + 857.39 * compensationVoltage) * 0.5;
+      for (copyIndex = 0; copyIndex < SCOUNT; copyIndex++)
+        analogBufferTemp[copyIndex] = analogBuffer[copyIndex];
+      averageVoltage = getMedianNum(analogBufferTemp, SCOUNT) * VREF / 1024.0;
+      float compensationCoefficient = 1.0 + 0.02 * (tempC - 25.0);
+      float compensationVoltage = averageVoltage / compensationCoefficient;
+      tdsValue = (133.42 * compensationVoltage * compensationVoltage * compensationVoltage - 255.86 * compensationVoltage * compensationVoltage + 857.39 * compensationVoltage) * 0.5;
 
-        // Print results to Serial
-        Serial.print("Temperature: ");
-        Serial.print(tempC);
-        Serial.print("C | ");
-        Serial.print(tempF);
-        Serial.print("F | pH: ");
-        Serial.print(phValue, 2);
-        Serial.print(" | TDS Value: ");
-        Serial.print(tdsValue, 0);
-        Serial.println("ppm");
-      }
+      // Print results to Serial
+      Serial.print("Temperature: ");
+      Serial.print(tempC);
+      Serial.print("C | ");
+      Serial.print(tempF);
+      Serial.print("F | pH: ");
+      Serial.print(phValue, 2);
+      Serial.print(" | TDS Value: ");
+      Serial.print(tdsValue, 0);
+      Serial.println("ppm");
       //state = 2;
     }else if(state==2){
       Serial.println("case 2");
