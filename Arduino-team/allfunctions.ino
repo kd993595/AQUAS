@@ -27,6 +27,9 @@ float averageVoltage = 0, tdsValue = 0;
 const int stepsPerRevolution = 200;
 Stepper myStepper = Stepper(stepsPerRevolution, 8, 9, 10, 11);
 
+// RC Control toggle inputs: activate sampling and sensors via RC input. 
+#define togglepin 2; 
+
 // Control variable for data collection
 int state = 1;
 
@@ -40,6 +43,7 @@ void setup()
   sensors.begin();
   pinMode(pH_SensorPin, INPUT);
   pinMode(TdsSensorPin, INPUT);
+  pinMode(togglepin, INPUT);
 
   // Set the motor speed (RPMs):
   myStepper.setSpeed(100);
@@ -52,6 +56,11 @@ void setup()
 
 void loop()
 {
+  // Guard statement: if toggle is low, do not run the code.
+  if (digitalRead(togglepin) == LOW) {
+    continue; 
+  }
+
   currentMillis = millis();
 
   if (currentMillis - previousMillis >= 2000){//replaces delay function so loop always running
