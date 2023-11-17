@@ -63,16 +63,11 @@ void setup()
 
 void loop()
 {
-  // Extra Guard statement: if toggle is low, do not run the code.
-  if (digitalRead(masterTogglePin) == LOW) {
-    //continue; 
-  }
-
   decideState();
 
   currentMillis = millis();
   
-  //replaces delay function so loop always running
+  //replaces delay function so loop always running despite use of delay(). 
   if (currentMillis - previousMillis >= 2000) { 
     previousMillis = currentMillis;
     
@@ -87,7 +82,7 @@ void loop()
     } 
     else if (state == MOTORS_ON) // WATER COLLECTION
     {
-      activateStepper();
+      activateStepper(maxRotation);
     } 
     else 
     {
@@ -98,9 +93,11 @@ void loop()
   
 }
 
+/**
+Modify "state", or what should be running, based on toggle inputs. 
+0 is kill. 1 = activate sensors. 2 = activate stepper. 
+*/
 void decideState() {
-    // Modify "state" based on toggle inputs. 
-    // 0 is kill. 1 = activate sensors. 2 = activate stepper. 
     if (digitalRead(masterTogglePin) == HIGH) 
     {
       state = ALL_OFF;
@@ -115,6 +112,9 @@ void decideState() {
     }
 } 
 
+/**
+Activates all 3 sensors. Understand and document this better, especially TDS! 
+*/
 void activateSensors() {
   Serial.println("case 1");
       // pH Measurement
@@ -159,9 +159,9 @@ void activateSensors() {
       for (copyIndex = 0; copyIndex < SCOUNT; copyIndex++)
         analogBufferTemp[copyIndex] = analogBuffer[copyIndex];
       averageVoltage = getMedianNum(analogBufferTemp, SCOUNT) * VREF / 1024.0;
-      float compensationCoefficient = 1.0 + 0.02 * (tempC - 25.0);
+      float compensationCoefficient = 1.0 + 0.02 * (tempC - 25.0); // factoring in temperature dependence of TDS? 
       float compensationVoltage = averageVoltage / compensationCoefficient;
-      tdsValue = (133.42 * compensationVoltage * compensationVoltage * compensationVoltage - 255.86 * compensationVoltage * compensationVoltage + 857.39 * compensationVoltage) * 0.5;
+      tdsValue = (133.42 * compensationVoltage * compensationVoltage * compensationVoltage - 255.86 * compensationVoltage * compensationVoltage + 857.39 * compensationVoltage) * 0.5; //Conversion from voltage to TDS? 
 
       // Print results to Serial
       Serial.print("Temperature: ");
@@ -177,9 +177,13 @@ void activateSensors() {
       //state = 2;
 }
 
-void activateStepper() {
+/**
+Rotates the stepper back and forth by a desired number of rotations. 
+@param: number of rotations. Could be fractional! E.g. 0.75 of a full revolution. 
+*/
+void activateStepper(float numRotations) {
   Serial.println("case 2");
-      int desiredRotation = int(maxRotation * stepsPerRevolution); 
+      int desiredRotation = int(numRotations * stepsPerRevolution); 
       if (clockwise) 
       {
         myStepper.step(desiredRotation);
@@ -193,6 +197,12 @@ void activateStepper() {
       state = SENSORS_ON;
 }
 
+/**
+A filter that smoothens out the ultimate TDS reading. 
+@param: bArray[], Array full of TDSsensorPin readings. Voltages
+@param: iFilterLen, ??? 
+@return: Median voltage reading. 
+*/
 int getMedianNum(int bArray[], int iFilterLen)
 {
   int bTab[iFilterLen];
