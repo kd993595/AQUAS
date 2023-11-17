@@ -22,18 +22,21 @@ int analogBufferTemp[SCOUNT];
 int analogBufferIndex = 0, copyIndex = 0;
 float averageVoltage = 0, tdsValue = 0;
 
-
 // Initialize the stepper library on pins 8 through 11:
 const int stepsPerRevolution = 200;
+const float maxRotation = 0.6; // Max Threshold is 13/17 teeth, or 0.76 of a full rotation. 
 Stepper myStepper = Stepper(stepsPerRevolution, 8, 9, 10, 11);
 
 // RC Control toggle inputs: activate sampling and sensors via RC input. 
-#define masterTogglePin 1;
-#define sensorTogglePin 2; 
-#define stepperTogglePin 3; 
+const int masterTogglePin = 3;
+const int sensorTogglePin = 4; 
+const int stepperTogglePin = 5; 
 
 // Control variable for data collection
-int state = 1;
+const int ALL_OFF = 0;
+const int SENSORS_ON = 1;
+const int MOTORS_ON = 2;
+int state = MOTORS_ON;
 
 bool clockwise = true;
 unsigned long previousMillis = 0; 
@@ -60,26 +63,60 @@ void setup()
 
 void loop()
 {
-  // Guard statement: if toggle is low, do not run the code.
+  // Extra Guard statement: if toggle is low, do not run the code.
   if (digitalRead(masterTogglePin) == LOW) {
-    continue; 
+    //continue; 
   }
-  
-  // Modify "state" based on toggle inputs. 
-  if (digitalRead(sensorTogglePin) == HIGH) {
-    state = 0;
-  } else {
-    state = 1; 
-  }
+
+  decideState();
 
   currentMillis = millis();
-
-  if (currentMillis - previousMillis >= 2000){//replaces delay function so loop always running
+  
+  //replaces delay function so loop always running
+  if (currentMillis - previousMillis >= 2000) { 
     previousMillis = currentMillis;
-    if (state == 0){
-      Serial.println("case 0");
-    } else if (state == 1 {
-      Serial.println("case 1");
+    
+    // THIS IS THE MAIN FUNCTIONALITY
+    if (state == ALL_OFF) 
+    {
+      Serial.println("ALL OFF");
+    }
+    else if (state == SENSORS_ON) 
+    {
+      activateSensors(); 
+    } 
+    else if (state == MOTORS_ON) // WATER COLLECTION
+    {
+      activateStepper();
+    } 
+    else 
+    {
+      Serial.println("default case");
+    }
+    Serial.println("end loop action");
+  }
+  
+}
+
+void decideState() {
+    // Modify "state" based on toggle inputs. 
+    // 0 is kill. 1 = activate sensors. 2 = activate stepper. 
+    if (digitalRead(masterTogglePin) == HIGH) 
+    {
+      state = ALL_OFF;
+    } 
+    else if (digitalRead(sensorTogglePin)) 
+    {
+      state = SENSORS_ON; 
+    } 
+    else if (digitalRead(stepperTogglePin)) 
+    {
+      state = MOTORS_ON; 
+    }
+} 
+
+void activateSensors() {
+  Serial.println("case 1");
       // pH Measurement
       int buf[10];
       for (int i = 0; i < 10; i++)
@@ -113,7 +150,8 @@ void loop()
 
       // TDS Measurement      
       analogBufferIndex = 0;
-      for (copyIndex = 0; copyIndex < SCOUNT; copyIndex++){
+      for (copyIndex = 0; copyIndex < SCOUNT; copyIndex++)
+      {
         analogBuffer[analogBufferIndex] = analogRead(TdsSensorPin);
         analogBufferIndex++;
         delay(5);
@@ -131,27 +169,28 @@ void loop()
       Serial.print("C | ");
       Serial.print(tempF);
       Serial.print("F | pH: ");
-      Serial.print(phValue, 2);
+      //Serial.print(phValue, 2);
+      Serial.print("NO PH RN");
       Serial.print(" | TDS Value: ");
       Serial.print(tdsValue, 0);
       Serial.println("ppm");
       //state = 2;
-    }else if(state==2){
-      Serial.println("case 2");
-      if(clockwise){
-        myStepper.step(200);
+}
+
+void activateStepper() {
+  Serial.println("case 2");
+      int desiredRotation = int(maxRotation * stepsPerRevolution); 
+      if (clockwise) 
+      {
+        myStepper.step(desiredRotation);
         clockwise = false;
-      } else {
-        myStepper.step(-200);
+      } 
+      else // anticlockwise
+      {
+        myStepper.step(-desiredRotation);
         clockwise = true;
       }
-      state=1;
-    }else{
-      Serial.println("default case");
-    }
-    Serial.println("end loop action");
-  }
-  
+      state = SENSORS_ON;
 }
 
 int getMedianNum(int bArray[], int iFilterLen)
