@@ -28,7 +28,9 @@ const int stepsPerRevolution = 200;
 Stepper myStepper = Stepper(stepsPerRevolution, 8, 9, 10, 11);
 
 // RC Control toggle inputs: activate sampling and sensors via RC input. 
-#define togglepin 2; 
+#define masterTogglePin 1;
+#define sensorTogglePin 2; 
+#define stepperTogglePin 3; 
 
 // Control variable for data collection
 int state = 1;
@@ -43,7 +45,9 @@ void setup()
   sensors.begin();
   pinMode(pH_SensorPin, INPUT);
   pinMode(TdsSensorPin, INPUT);
-  pinMode(togglepin, INPUT);
+  pinMode(masterTogglePin, INPUT);
+  pinMode(sensorTogglePin, INPUT);
+  pinMode(stepperTogglePin, INPUT);
 
   // Set the motor speed (RPMs):
   myStepper.setSpeed(100);
@@ -57,17 +61,24 @@ void setup()
 void loop()
 {
   // Guard statement: if toggle is low, do not run the code.
-  if (digitalRead(togglepin) == LOW) {
+  if (digitalRead(masterTogglePin) == LOW) {
     continue; 
+  }
+  
+  // Modify "state" based on toggle inputs. 
+  if (digitalRead(sensorTogglePin) == HIGH) {
+    state = 0;
+  } else {
+    state = 1; 
   }
 
   currentMillis = millis();
 
   if (currentMillis - previousMillis >= 2000){//replaces delay function so loop always running
     previousMillis = currentMillis;
-    if(state == 0){
+    if (state == 0){
       Serial.println("case 0");
-    }else if(state == 1){
+    } else if (state == 1 {
       Serial.println("case 1");
       // pH Measurement
       int buf[10];
@@ -130,7 +141,7 @@ void loop()
       if(clockwise){
         myStepper.step(200);
         clockwise = false;
-      }else{
+      } else {
         myStepper.step(-200);
         clockwise = true;
       }
