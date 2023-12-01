@@ -22,13 +22,21 @@ int analogBufferTemp[SCOUNT];
 int analogBufferIndex = 0, copyIndex = 0;
 float averageVoltage = 0, tdsValue = 0;
 
-
 // Initialize the stepper library on pins 8 through 11:
 const int stepsPerRevolution = 200;
+const float maxRotation = 0.6; // Max Threshold is 13/17 teeth, or 0.76 of a full rotation. 
 Stepper myStepper = Stepper(stepsPerRevolution, 8, 9, 10, 11);
 
+// RC Control toggle inputs: activate sampling and sensors via RC input. 
+const int masterTogglePin = 3;
+const int sensorTogglePin = 4; 
+const int stepperTogglePin = 5; 
+
 // Control variable for data collection
-int state = 1;
+const int ALL_OFF = 0;
+const int SENSORS_ON = 1;
+const int MOTORS_ON = 2;
+int state = MOTORS_ON;
 
 bool clockwise = true;
 unsigned long previousMillis = 0; 
@@ -40,6 +48,9 @@ void setup()
   sensors.begin();
   pinMode(pH_SensorPin, INPUT);
   pinMode(TdsSensorPin, INPUT);
+  pinMode(masterTogglePin, INPUT);
+  pinMode(sensorTogglePin, INPUT);
+  pinMode(stepperTogglePin, INPUT);
 
   // Set the motor speed (RPMs):
   myStepper.setSpeed(100);
@@ -52,14 +63,60 @@ void setup()
 
 void loop()
 {
-  currentMillis = millis();
+  decideState();
 
-  if (currentMillis - previousMillis >= 2000){//replaces delay function so loop always running
+  currentMillis = millis();
+  
+  //replaces delay function so loop always running despite use of delay(). 
+  if (currentMillis - previousMillis >= 2000) { 
     previousMillis = currentMillis;
-    if(state == 0){
-      Serial.println("case 0");
-    }else if(state == 1){
-      Serial.println("case 1");
+    
+    // THIS IS THE MAIN FUNCTIONALITY
+    if (state == ALL_OFF) 
+    {
+      Serial.println("ALL OFF");
+    }
+    else if (state == SENSORS_ON) 
+    {
+      activateSensors(); 
+    } 
+    else if (state == MOTORS_ON) // WATER COLLECTION
+    {
+      activateStepper(maxRotation);
+    } 
+    else 
+    {
+      Serial.println("default case");
+    }
+    Serial.println("end loop action");
+  }
+  
+}
+
+/**
+Modify "state", or what should be running, based on toggle inputs. 
+0 is kill. 1 = activate sensors. 2 = activate stepper. 
+*/
+void decideState() {
+    if (digitalRead(masterTogglePin) == HIGH) 
+    {
+      state = ALL_OFF;
+    } 
+    else if (digitalRead(sensorTogglePin)) 
+    {
+      state = SENSORS_ON; 
+    } 
+    else if (digitalRead(stepperTogglePin)) 
+    {
+      state = MOTORS_ON; 
+    }
+} 
+
+/**
+Activates all 3 sensors. Understand and document this better, especially TDS! 
+*/
+void activateSensors() {
+  Serial.println("case 1");
       // pH Measurement
       int buf[10];
       for (int i = 0; i < 10; i++)
@@ -93,7 +150,8 @@ void loop()
 
       // TDS Measurement      
       analogBufferIndex = 0;
-      for (copyIndex = 0; copyIndex < SCOUNT; copyIndex++){
+      for (copyIndex = 0; copyIndex < SCOUNT; copyIndex++)
+      {
         analogBuffer[analogBufferIndex] = analogRead(TdsSensorPin);
         analogBufferIndex++;
         delay(5);
@@ -101,9 +159,9 @@ void loop()
       for (copyIndex = 0; copyIndex < SCOUNT; copyIndex++)
         analogBufferTemp[copyIndex] = analogBuffer[copyIndex];
       averageVoltage = getMedianNum(analogBufferTemp, SCOUNT) * VREF / 1024.0;
-      float compensationCoefficient = 1.0 + 0.02 * (tempC - 25.0);
+      float compensationCoefficient = 1.0 + 0.02 * (tempC - 25.0); // factoring in temperature dependence of TDS? 
       float compensationVoltage = averageVoltage / compensationCoefficient;
-      tdsValue = (133.42 * compensationVoltage * compensationVoltage * compensationVoltage - 255.86 * compensationVoltage * compensationVoltage + 857.39 * compensationVoltage) * 0.5;
+      tdsValue = (133.42 * compensationVoltage * compensationVoltage * compensationVoltage - 255.86 * compensationVoltage * compensationVoltage + 857.39 * compensationVoltage) * 0.5; //Conversion from voltage to TDS? 
 
       // Print results to Serial
       Serial.print("Temperature: ");
@@ -111,29 +169,40 @@ void loop()
       Serial.print("C | ");
       Serial.print(tempF);
       Serial.print("F | pH: ");
-      Serial.print(phValue, 2);
+      //Serial.print(phValue, 2);
+      Serial.print("NO PH RN");
       Serial.print(" | TDS Value: ");
       Serial.print(tdsValue, 0);
       Serial.println("ppm");
       //state = 2;
-    }else if(state==2){
-      Serial.println("case 2");
-      if(clockwise){
-        myStepper.step(200);
-        clockwise = false;
-      }else{
-        myStepper.step(-200);
-        clockwise = true;
-      }
-      state=1;
-    }else{
-      Serial.println("default case");
-    }
-    Serial.println("end loop action");
-  }
-  
 }
 
+/**
+Rotates the stepper back and forth by a desired number of rotations. 
+@param: number of rotations. Could be fractional! E.g. 0.75 of a full revolution. 
+*/
+void activateStepper(float numRotations) {
+  Serial.println("case 2");
+      int desiredRotation = int(numRotations * stepsPerRevolution); 
+      if (clockwise) 
+      {
+        myStepper.step(desiredRotation);
+        clockwise = false;
+      } 
+      else // anticlockwise
+      {
+        myStepper.step(-desiredRotation);
+        clockwise = true;
+      }
+      state = SENSORS_ON;
+}
+
+/**
+A filter that smoothens out the ultimate TDS reading. 
+@param: bArray[], Array full of TDSsensorPin readings. Voltages
+@param: iFilterLen, ??? 
+@return: Median voltage reading. 
+*/
 int getMedianNum(int bArray[], int iFilterLen)
 {
   int bTab[iFilterLen];
