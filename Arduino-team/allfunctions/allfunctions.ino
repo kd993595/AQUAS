@@ -31,6 +31,7 @@ Stepper myStepper = Stepper(stepsPerRevolution, 8, 9, 10, 11);
 const int masterTogglePin = 3;
 const int sensorTogglePin = 4; 
 const int stepperTogglePin = 5; 
+const int TESTPIN = 13;
 
 // Control variable for data collection
 const int ALL_OFF = 0;
@@ -51,6 +52,7 @@ void setup()
   pinMode(masterTogglePin, INPUT);
   pinMode(sensorTogglePin, INPUT);
   pinMode(stepperTogglePin, INPUT);
+  pinMode(TESTPIN, OUTPUT);
 
   // Set the motor speed (RPMs):
   myStepper.setSpeed(100);
@@ -59,11 +61,21 @@ void setup()
   Serial.begin(115200);
   Serial.println("Ready");
 
+  // Running the sensors once: 
+  digitalWrite(TESTPIN, HIGH);
+  Serial.println(digitalRead(masterTogglePin));
+  decideState();
+
+  if (state == SENSORS_ON) {
+    activateSensors();
+  }
+
 }
 
 void loop()
 {
   decideState();
+  state = SENSORS_ON;
 
   currentMillis = millis();
   
@@ -78,7 +90,7 @@ void loop()
     }
     else if (state == SENSORS_ON) 
     {
-      activateSensors(); 
+      //activateSensors(); 
     } 
     else if (state == MOTORS_ON) // WATER COLLECTION
     {
@@ -88,7 +100,7 @@ void loop()
     {
       Serial.println("default case");
     }
-    Serial.println("end loop action");
+    //Serial.println("end loop action");
   }
   
 }
@@ -100,7 +112,8 @@ Modify "state", or what should be running, based on toggle inputs.
 void decideState() {
     if (digitalRead(masterTogglePin) == HIGH) 
     {
-      state = ALL_OFF;
+      // state = ALL_OFF;
+      state = SENSORS_ON;
     } 
     else if (digitalRead(sensorTogglePin)) 
     {
