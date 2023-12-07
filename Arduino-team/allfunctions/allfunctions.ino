@@ -33,11 +33,12 @@ const int sensorTogglePin = 4;
 const int stepperTogglePin = 5; 
 const int TESTPIN = 13;
 
-// Control variable for data collection
+// Control variables for data collection. Will use later on in design process.
+// For now, we are using one switch that will trigger both the sensors and then the motors. 
 const int ALL_OFF = 0;
 const int SENSORS_ON = 1;
 const int MOTORS_ON = 2;
-int state = MOTORS_ON;
+int state = 0;
 
 bool clockwise = true;
 unsigned long previousMillis = 0; 
@@ -61,21 +62,15 @@ void setup()
   Serial.begin(115200);
   Serial.println("Ready");
 
-  // Running the sensors once: 
-  digitalWrite(TESTPIN, HIGH);
-  Serial.println(digitalRead(masterTogglePin));
-  decideState();
-
-  if (state == SENSORS_ON) {
-    activateSensors();
-  }
-
 }
 
+/**
+At the moment, the loop doesn't use the written decideState() function. Our current stage of the project
+only requires us to activate the sensors once, and then the motors. This loop function is far from comprehensive! 
+*/
 void loop()
 {
-  decideState();
-  state = SENSORS_ON;
+  state = ALL_OFF;
 
   currentMillis = millis();
   
@@ -88,9 +83,10 @@ void loop()
     {
       Serial.println("ALL OFF");
     }
-    else if (state == SENSORS_ON) 
+    else if (digitalRead(masterTogglePin) == HIGH)  // if the toggle switch is flipped, activate sensors ONCE. 
     {
-      //activateSensors(); 
+      activateSensors(); 
+      state = MOTORS_ON;
     } 
     else if (state == MOTORS_ON) // WATER COLLECTION
     {
@@ -105,31 +101,36 @@ void loop()
   
 }
 
+
+
 /**
 Modify "state", or what should be running, based on toggle inputs. 
 0 is kill. 1 = activate sensors. 2 = activate stepper. 
 */
 void decideState() {
-    if (digitalRead(masterTogglePin) == HIGH) 
-    {
-      // state = ALL_OFF;
+  // if toggle pin is low, everthing off 
+  // else, goes into into another if-else 
+  // then test for other 
+  if (digitalRead(masterTogglePin) == LOW){
+    state = ALL_OFF;
+  } else {
+    if (digitalRead(sensorTogglePin) == HIGH){
       state = SENSORS_ON;
-    } 
-    else if (digitalRead(sensorTogglePin)) 
-    {
-      state = SENSORS_ON; 
-    } 
-    else if (digitalRead(stepperTogglePin)) 
-    {
-      state = MOTORS_ON; 
+    } else if (digitalRead(stepperTogglePin) == HIGH){
+      state = MOTORS_ON;
+    } else {
+      state = ALL_OFF;
     }
+  }
+
+  Serial.println(state);
 } 
 
 /**
 Activates all 3 sensors. Understand and document this better, especially TDS! 
 */
 void activateSensors() {
-  Serial.println("case 1");
+  //Serial.println("case 1");
       // pH Measurement
       int buf[10];
       for (int i = 0; i < 10; i++)
@@ -195,19 +196,17 @@ Rotates the stepper back and forth by a desired number of rotations.
 @param: number of rotations. Could be fractional! E.g. 0.75 of a full revolution. 
 */
 void activateStepper(float numRotations) {
-  Serial.println("case 2");
       int desiredRotation = int(numRotations * stepsPerRevolution); 
       if (clockwise) 
       {
         myStepper.step(desiredRotation);
-        clockwise = false;
+        //clockwise = false;
       } 
       else // anticlockwise
       {
         myStepper.step(-desiredRotation);
         clockwise = true;
       }
-      state = SENSORS_ON;
 }
 
 /**
