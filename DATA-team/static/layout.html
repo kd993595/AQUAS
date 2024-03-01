@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Tables</title>
+    <link rel="icon" type="image/x-icon" href="./static/sample.ico">
+    <link rel="stylesheet" href="./static/style.css">
+    <script src="./static/main.js"></script>
+</head>
+<body>
+
+    <button type="button" onclick="tableToCSV()" style="margin: 10px;">
+        download CSV
+    </button>
+
+    <table id="myTable" class="display">
+    <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>Temperature</th>
+            <th>pH</th>
+            <th>Salinity</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .}}
+            <tr>
+                <td>{{.Time}}</td>
+                <td>{{.Temp}}</td>
+                <td>{{.Ph}}</td>
+                <td>{{.Sal}}</td>
+            </tr>
+        {{end}}
+        <!-- <tr>
+            <td>Row 1 Data 1</td>
+            <td>Row 1 Data 2</td>
+            <td>Row 1 Data 1</td>
+            <td>Row 1 Data 2</td>
+        </tr> -->
+    </tbody>
+    </table>
+</body>
+</html>
