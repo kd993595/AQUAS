@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,37 +9,63 @@
     <link rel="stylesheet" href="./static/style.css">
     <script src="./static/main.js"></script>
 </head>
+
 <body>
 
     <button type="button" onclick="tableToCSV()" style="margin: 10px;">
         download CSV
     </button>
 
+    <label for="buffer-select">Choose a table size:</label>
+    <select name="buffer" id="buffer-select" onchange="changeBufferSize()" autocomplete="off">
+        <option value="10">10</option>
+        <option value="25" selected>25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+    </select>
+
     <table id="myTable" class="display">
-    <thead>
-        <tr>
-            <th>Timestamp</th>
-            <th>Temperature</th>
-            <th>pH</th>
-            <th>Salinity</th>
-        </tr>
-    </thead>
-    <tbody>
-        {{range .}}
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Temperature</th>
+                <th>pH</th>
+                <th>Salinity</th>
+            </tr>
+        </thead>
+        <tbody id="body">
+            {{range .}}
             <tr>
                 <td>{{.Time}}</td>
                 <td>{{.Temp}}</td>
                 <td>{{.Ph}}</td>
                 <td>{{.Sal}}</td>
             </tr>
-        {{end}}
-        <!-- <tr>
+            {{end}}
+            <!-- <tr>
             <td>Row 1 Data 1</td>
             <td>Row 1 Data 2</td>
             <td>Row 1 Data 1</td>
             <td>Row 1 Data 2</td>
         </tr> -->
-    </tbody>
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>Timestamp</th>
+                <th>Temperature</th>
+                <th>pH</th>
+                <th>Salinity</th>
+            </tr>
+        </tfoot>
     </table>
+
+    <div class="btn-group">
+        <button onclick="JumpStartPage()"> 	&#60;&#60; </button>
+        <button onclick="DecreasePage()"> &#60; </button>
+        <button onclick="IncreasePage()"> &#62; </button>
+        <button onclick="JumpEndPage()"> &#62;&#62; </button>
+        <button disabled id="pageDiv" class="disabled">disabled</button>
+    </div>
 </body>
+
 </html>

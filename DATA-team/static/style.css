@@ -1,21 +1,22 @@
-
-table{
+table {
     width: 90%;
     margin-left: auto;
     margin-right: auto;
     border-collapse: collapse;
 }
 
-table, th, td {
+table,
+th,
+td {
     border: 1px solid;
 }
 
-th{
+th {
     background-color: #10a312;
     text-align: center;
 }
 
-tr{
+tr {
     text-align: right;
 }
 
@@ -27,4 +28,53 @@ tr:nth-child(odd) {
     background-color: #f9f9f9;
 }
 
-tr:hover {background-color: #D6EEEE;}
+tr:hover {
+    background-color: #D6EEEE;
+}
+
+.disabled {
+    cursor: not-allowed !important;
+}
+
+.disabled {
+    background-color: #04AA6D !important;
+}
+
+.btn-group{
+    margin-top: 10px;
+    margin-left: 5%;
+}
+
+.btn-group button {
+    background-color: #04AA6D;
+    /* Green background */
+    border: 1px solid green;
+    /* Green border */
+    color: white;
+    /* White text */
+    padding: 10px 24px;
+    /* Some padding */
+    cursor: pointer;
+    /* Pointer/hand icon */
+    float: left;
+    /* Float the buttons side by side */
+    font-size: large;
+}
+
+.btn-group button:not(:last-child) {
+    border-right: none;
+    /* Prevent double borders */
+}
+
+/* Clear floats (clearfix hack) */
+.btn-group:after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+/* Add a background color on hover */
+.btn-group button:hover {
+    background-color: #3e8e41;
+}
+
