@@ -1,0 +1,135 @@
+body {
+    background-color: white;
+    margin: 0px;
+}
+
+#header {
+    padding: 30px;
+    text-align: center;
+    color: whitesmoke;
+    font-size: 20px;
+    background-color: rgb(11, 77, 110);
+}
+
+.entry {
+    margin: 0px;
+    padding: 10px;
+    background-color: transparent;
+    animation-name: fadein;
+    animation-duration: 2s;
+    border-radius: 10px;
+
+}
+
+@keyframes fadein {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+table {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    border-collapse: collapse;
+}
+
+table,
+th,
+td {
+    border: 1px solid;
+    font-size: 1.25em;
+    table-layout: fixed;
+}
+
+th,
+td {
+    width: 15vw;
+    text-align: center;
+}
+
+th {
+    background-color: rgb(11, 77, 110);
+    color: white;
+}
+
+tr {
+    text-align: right;
+}
+
+.white {
+    background-color: #d9d9d9;
+}
+
+.gray {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #D6EEEE;
+}
+
+/*
+Collapse Section
+*/
+.collapsible {
+    background-color: #777;
+    color: white;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+}
+
+.active,
+.collapsible:hover {
+    background-color: #555;
+}
+
+.collapsible:after {
+    content: '\002B';
+    color: white;
+    font-weight: bold;
+    float: right;
+    margin-left: 5px;
+}
+
+.active:after {
+    content: "\2212";
+}
+
+.content {
+    padding: 0 18px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+    background-color: #f1f1f1;
+
+}
+
+img {
+    width: 100%;
+    height: 100%;
+}
+
+.imgContainer {
+    width: 200px;
+    height: 200px;
+    margin: 10px 20px;
+    float: left;
+}
+
+@media screen and (max-width: 600px) {
+    table,
+    th,
+    td {
+        font-size: 1em;
+    }
+}

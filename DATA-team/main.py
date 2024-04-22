@@ -1,19 +1,35 @@
 import requests
-
+import csv
+import time
 
 API_ENDPOINT = "http://127.0.0.1:3030/upload"
 
 API_KEY = "XXXXXXXXXXXXXXXXX"
 
-data = None
+with open("MOCK_DATA2.csv","r") as csv_file:
+    csv_reader = csv.reader(csv_file, delimiter=',')
+    line_count = 0
+    for row in csv_reader:
+        # print(f"{row[0]} --- {row[1]} --- {row[2]} --- {row[3]} raw:{','.join(row)}\n")
+        rawdata = ','.join(row)
+        line_count += 1
+        try: 
+            r = requests.post(url=API_ENDPOINT, data=rawdata, headers={"Content-Type": "text/csv",'Authorization': API_KEY},timeout=1)
+            print(r.status_code)
+            print(r.content)
+        except requests.exceptions.HTTPError as errh:
+            print ("Http Error:",errh)
+        except requests.exceptions.ConnectionError as errc:
+            print ("Error Connecting:",errc)
+        except requests.exceptions.Timeout as errt:
+            print ("Timeout Error:",errt)
+        except requests.exceptions.RequestException as err:
+            print ("OOps: Something Else",err)
+        time.sleep(10)
+        if line_count >= 100:
+            break
+    print(f'Processed {line_count} lines.')
 
-with open("MOCK_DATA2.csv","r") as f:
-    data = f.read()
-
-r = requests.post(url=API_ENDPOINT, data=data, headers={"Content-Type": "text/csv",'Authorization': API_KEY})
-
-print(r.status_code)
-print(r.content)
 
 
 """

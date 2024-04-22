@@ -1,3 +1,13 @@
+body{
+    background-image: url("./img1-long-small.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+label{
+    color: white;
+}
+
 table {
     width: 90%;
     margin-left: auto;
@@ -12,8 +22,9 @@ td {
 }
 
 th {
-    background-color: #10a312;
+    background-color: rgb(11, 77, 110);
     text-align: center;
+    color: white;
 }
 
 tr {
@@ -37,7 +48,7 @@ tr:hover {
 }
 
 .disabled {
-    background-color: #04AA6D !important;
+    background-color: rgb(21, 87, 120) !important;
 }
 
 .btn-group{
@@ -46,9 +57,9 @@ tr:hover {
 }
 
 .btn-group button {
-    background-color: #04AA6D;
+    background-color: rgb(21, 87, 120);
     /* Green background */
-    border: 1px solid green;
+    border: 1px solid rgb(11, 77, 110);
     /* Green border */
     color: white;
     /* White text */
@@ -75,6 +86,6 @@ tr:hover {
 
 /* Add a background color on hover */
 .btn-group button:hover {
-    background-color: #3e8e41;
+    background-color: rgb(11, 77, 130);
 }
 
