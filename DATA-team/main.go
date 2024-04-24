@@ -96,7 +96,7 @@ func main() {
 	defer db.Close()
 
 	tmpl := template.Must(template.ParseFiles("./static/layout.html"))
-	tmplPosts := template.Must(template.ParseFiles("./static/queue.html"))
+	tmplPosts := template.Must(template.ParseFiles("./static/queue2.html"))
 
 	RWmutex = &sync.RWMutex{}
 	SetQueue(db)

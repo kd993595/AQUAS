@@ -19,16 +19,19 @@ table,
 th,
 td {
     border: 1px solid;
+    
 }
 
 th {
     background-color: rgb(11, 77, 110);
     text-align: center;
     color: white;
+    font-size: 1.3em;
 }
 
 tr {
-    text-align: right;
+    text-align: center;
+    font-size: 1.1em;
 }
 
 tr:nth-child(even) {
@@ -41,6 +44,13 @@ tr:nth-child(odd) {
 
 tr:hover {
     background-color: #D6EEEE;
+}
+
+/*Shrinking for mobile*/
+@media (max-width: 768px) {
+    table {
+        width: 100%;
+    }
 }
 
 .disabled {
