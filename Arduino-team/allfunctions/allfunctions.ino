@@ -70,7 +70,7 @@ only requires us to activate the sensors once, and then the motors. This loop fu
 */
 void loop()
 {
-  state = ALL_OFF;
+  state = 3;
 
   currentMillis = millis();
   
@@ -83,7 +83,7 @@ void loop()
     {
       Serial.println("ALL OFF");
     }
-    else if (digitalRead(masterTogglePin) == HIGH)  // if the toggle switch is flipped, activate sensors ONCE. 
+    else if (digitalRead(masterTogglePin) == HIGH || state == 3)  // if the toggle switch is flipped, activate sensors ONCE. 
     {
       activateSensors(); 
       state = MOTORS_ON;
