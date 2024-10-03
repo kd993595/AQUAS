@@ -1,0 +1,101 @@
+body{
+    background-image: url("./img1-long-small.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+label{
+    color: white;
+}
+
+table {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    border-collapse: collapse;
+}
+
+table,
+th,
+td {
+    border: 1px solid;
+    
+}
+
+th {
+    background-color: rgb(11, 77, 110);
+    text-align: center;
+    color: white;
+    font-size: 1.3em;
+}
+
+tr {
+    text-align: center;
+    font-size: 1.1em;
+}
+
+tr:nth-child(even) {
+    background-color: #d9d9d9;
+}
+
+tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #D6EEEE;
+}
+
+/*Shrinking for mobile*/
+@media (max-width: 768px) {
+    table {
+        width: 100%;
+    }
+}
+
+.disabled {
+    cursor: not-allowed !important;
+}
+
+.disabled {
+    background-color: rgb(21, 87, 120) !important;
+}
+
+.btn-group{
+    margin-top: 10px;
+    margin-left: 5%;
+}
+
+.btn-group button {
+    background-color: rgb(21, 87, 120);
+    /* Green background */
+    border: 1px solid rgb(11, 77, 110);
+    /* Green border */
+    color: white;
+    /* White text */
+    padding: 10px 24px;
+    /* Some padding */
+    cursor: pointer;
+    /* Pointer/hand icon */
+    float: left;
+    /* Float the buttons side by side */
+    font-size: large;
+}
+
+.btn-group button:not(:last-child) {
+    border-right: none;
+    /* Prevent double borders */
+}
+
+/* Clear floats (clearfix hack) */
+.btn-group:after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+/* Add a background color on hover */
+.btn-group button:hover {
+    background-color: rgb(11, 77, 130);
+}
+

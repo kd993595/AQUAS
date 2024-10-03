@@ -1,0 +1,12 @@
+create table AQUAS1(
+    timestamp int primary key,
+    temp float,
+    ph float,
+    salinity float
+);
+
+insert into AQUAS1 (timestamp, temp, ph, salinity) values (?, ?, ?, ?);
+
+select * from AQUAS1;
+
+DELETE FROM AQUAS1 WHERE timestamp >= 1707805738;
