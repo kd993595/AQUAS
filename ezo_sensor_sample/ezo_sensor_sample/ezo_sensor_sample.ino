@@ -1,6 +1,7 @@
 #include <Ezo_i2c.h>
 #include <Wire.h>
 #include <sequencer3.h>
+#include <sequencer4.h>
 #include <Ezo_i2c_util.h>
 
 Ezo_board DO = Ezo_board(97, "DO");
@@ -45,6 +46,7 @@ void step2(){
   if ((RTD.get_error() == Ezo_board::SUCCESS) && (RTD.get_last_received_reading() > -1000.0)) {
     EC.send_read_with_temp_comp(RTD.get_last_received_reading());
   } else {
+    // Default case: EC with 25˚C default temperature
     EC.send_read_with_temp_comp(25.0);
   }
 }
