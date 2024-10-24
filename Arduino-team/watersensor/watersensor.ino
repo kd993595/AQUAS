@@ -20,6 +20,8 @@
 #define CH5 10
 #define CH6 11
 
+int intakePumpRelayPin = 3;
+
 // Integers to represent values from sticks and pots
 //int ch1Value;
 //int ch2Value;
@@ -56,6 +58,7 @@ void setup(){
 //  pinMode(CH4, INPUT);
   pinMode(CH5, INPUT);
   pinMode(CH6, INPUT);
+  pinMode(intakePumpRelayPin, OUTPUT);
 }
 
 
@@ -69,6 +72,11 @@ void loop() {
 //  ch5Value = readChannel(CH5, -100, 100, 0);
   ch5Value = readSwitch(CH5, false);
   ch6Value = readSwitch(CH6, false);
+
+  if(ch6Value = HIGH) {
+    analogWrite(intakePumpRelayPin, 100);
+    Serial.println("RELAY");
+  }
   
   // Print to Serial Monitor
 //  Serial.print("Ch1: ");
