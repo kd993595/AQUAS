@@ -1,16 +1,13 @@
-// FS-IA6B reciever - Don't use top row. From top to bottom signal, power, ground
-
 /*
   Arduino FS-I6X Demo
   fsi6x-arduino-uno.ino
   Read output ports from FS-IA6B receiver module
   Display values on Serial Monitor
   
-  Channel functions by Ricardo Paiva - https://gist.github.com/werneckpaiva/
-  
-  DroneBot Workshop 2021
-  https://dronebotworkshop.com
+  Some code derived from Ricardo Paiva - https://gist.github.com/werneckpaiva/
 */
+
+#include <Servo.h>
 
 // Define Input Connections
 //#define CH1 3
@@ -20,77 +17,134 @@
 #define CH5 10
 #define CH6 11
 
-int intakePumpRelayPin = 3;
+  // Integers to represent values from sticks and pots
+  //int ch1Value;
+  //int ch2Value;
+  //int ch3Value;
+  //int ch4Value;
 
-// Integers to represent values from sticks and pots
-//int ch1Value;
-//int ch2Value;
-//int ch3Value;
-//int ch4Value; 
-
-// Boolean to represent switch value
+  // Boolean to represent switch value
 bool ch5Value;
 bool ch6Value;
 
+// Pump variables
+const int intakePumpRelayPin = 5;
+const int outtakePumpRelayPin = 6;
+const int pumpVoltageScale = 100;  // 0-255 analog signal for pwm control of pump motors.
+// Keep track if intake or outtake mode is on.
+int outtakeState = 0;
+int intakeState = 0;
+
+// Powder resevoir and mixer components
+const int mixerPin = 7;
+const int agitatorPin = 8;
+const int servoPin = 9;
+Servo myServo;
+int servoAngle = 90;
+int servoState = 0; // 0 = closed, 1 = open. 
+
+// Track time elapsed for synchronous sensing and actuation of components
+unsigned long previousMillis = 0;
+unsigned long currentMillis = 0;
+
+
 // Read the number of a specified channel and convert to the range provided.
 // If the channel is off, return the default value
-int readChannel(int channelInput, int minLimit, int maxLimit, int defaultValue){
+// Read an analog channel (e.g. joystick) and map it onto a usable range.
+int readChannel(int channelInput, int minLimit, int maxLimit, int defaultValue) {
   int ch = pulseIn(channelInput, HIGH, 30000);
   if (ch < 100) return defaultValue;
   return map(ch, 1000, 2000, minLimit, maxLimit);
 }
 
 // Read the switch channel and return a boolean value
-bool readSwitch(byte channelInput, bool defaultValue){
-  int intDefaultValue = (defaultValue)? 100: 0;
+bool readSwitch(byte channelInput, bool defaultValue) {
+  int intDefaultValue = (defaultValue) ? 100 : 0;
   int ch = readChannel(channelInput, 0, 100, intDefaultValue);
   return (ch > 50);
 }
 
-void setup(){
+void setup() {
   // Set up serial monitor
   Serial.begin(115200);
   
-  // Set all pins as inputs
-//  pinMode(CH1, INPUT);
-//  pinMode(CH2, INPUT);
-//  pinMode(CH3, INPUT);
-//  pinMode(CH4, INPUT);
+  // Controller pin setup:
+  //  pinMode(CH1, INPUT);
+  //  pinMode(CH2, INPUT);
+  //  pinMode(CH3, INPUT);
+  //  pinMode(CH4, INPUT);
   pinMode(CH5, INPUT);
   pinMode(CH6, INPUT);
+
+  // Pump pin setup
   pinMode(intakePumpRelayPin, OUTPUT);
+  pinMode(outtakePumpRelayPin, OUTPUT);
+
+  // Servo setup
+  myServo.attach(servoPin);
+  myServo.write(0); 
+  
 }
 
 
 void loop() {
-  
+  // Get current millis elapsed. 
+  unsigned long currentMillis = millis();
+
+  // DEFAULT CASE: everything is off or reset. 
+  analogWrite(intakePumpRelayPin, LOW);
+  analogWrite(outtakePumpRelayPin, LOW);
+  digitalWrite(mixerPin, LOW);
+  digitalWrite(agitatorPin, LOW);
+  myServo.write(0); 
+
+
   // Get values for each channel
-//  ch1Value = readChannel(CH1, -100, 100, 0);
-//  ch2Value = readChannel(CH2, -100, 100, 0);
-//  ch3Value = readChannel(CH3, -100, 100, -100);
-//  ch4Value = readChannel(CH4, -100, 100, 0);
-//  ch5Value = readChannel(CH5, -100, 100, 0);
+  //  ch1Value = readChannel(CH1, -100, 100, 0);
+  //  ch2Value = readChannel(CH2, -100, 100, 0);
+  //  ch3Value = readChannel(CH3, -100, 100, -100);
+  //  ch4Value = readChannel(CH4, -100, 100, 0);
+  //  ch5Value = readChannel(CH5, -100, 100, 0);
   ch5Value = readSwitch(CH5, false);
   ch6Value = readSwitch(CH6, false);
 
-  if(ch6Value = HIGH) {
-    analogWrite(intakePumpRelayPin, 100);
-    Serial.println("RELAY");
+  // RUN INTAKE COMPONENTS
+  if (ch5Value = HIGH) {
+    // Run just the servo first for 1 second pulses. 
+    if (servoState == LOW) {
+      myServo.write(servoAngle);
+      previousMillis = currentMillis;
+      servoState == HIGH; 
+    }
+
+    if (servoState == HIGH && currentMillis - previousMillis >= 1000) {
+      myServo.write(0);
+    }
+
+    // Run rest of intake system
+    analogWrite(intakePumpRelayPin, pumpVoltageScale);
+    digitalWrite(agitatorPin, HIGH);
+    digitalWrite(mixerPin, HIGH);
+
   }
-  
+
+  // RUN OUTTAKE COMPONENTS
+  if (ch6Value = HIGH) {
+      analogWrite(outtakePumpRelayPin, pumpVoltageScale);
+  }
+
+
   // Print to Serial Monitor
-//  Serial.print("Ch1: ");
-//  Serial.print(ch1Value);
-//  Serial.print(" | Ch2: ");
-//  Serial.print(ch2Value);
-//  Serial.print(" | Ch3: ");
-//  Serial.print(ch3Value);
-//  Serial.print(" | Ch4: ");
-//  Serial.print(ch4Value);
+  //  Serial.print("Ch1: ");
+  //  Serial.print(ch1Value);
+  //  Serial.print(" | Ch2: ");
+  //  Serial.print(ch2Value);
+  //  Serial.print(" | Ch3: ");
+  //  Serial.print(ch3Value);
+  //  Serial.print(" | Ch4: ");
+  //  Serial.print(ch4Value);
   Serial.print(" | Ch5: ");
   Serial.print(ch5Value);
   Serial.print(" | Ch6: ");
   Serial.println(ch6Value);
-  
-  delay(500);
 }
