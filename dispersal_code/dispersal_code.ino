@@ -32,8 +32,8 @@ const int intakePumpRelayPin = 5;
 const int outtakePumpRelayPin = 6;
 const int pumpVoltageScale = 100;  // 0-255 analog signal for pwm control of pump motors.
 // Keep track if intake or outtake mode is on.
-int outtakeState = 0;
-int intakeState = 0;
+int intakeState = LOW;
+int outtakeState = LOW;
 
 // Powder resevoir and mixer components
 const int mixerPin = 7;
@@ -44,8 +44,11 @@ int servoAngle = 90;
 int servoState = 0; // 0 = closed, 1 = open. 
 
 // Track time elapsed for synchronous sensing and actuation of components
-unsigned long previousMillis = 0;
 unsigned long currentMillis = 0;
+unsigned long servoPreviousMillis = 0;
+unsigned long intakePreviousMillis = 0;
+unsigned long outtakePreviousMillis = 0;
+
 
 
 // Read the number of a specified channel and convert to the range provided.
@@ -86,17 +89,9 @@ void setup() {
   
 }
 
-
 void loop() {
   // Get current millis elapsed. 
   unsigned long currentMillis = millis();
-
-  // DEFAULT CASE: everything is off or reset. 
-  analogWrite(intakePumpRelayPin, LOW);
-  analogWrite(outtakePumpRelayPin, LOW);
-  digitalWrite(mixerPin, LOW);
-  digitalWrite(agitatorPin, LOW);
-  myServo.write(0); 
 
 
   // Get values for each channel
@@ -109,28 +104,56 @@ void loop() {
   ch6Value = readSwitch(CH6, false);
 
   // RUN INTAKE COMPONENTS
-  if (ch5Value = HIGH) {
+  if (ch5Value == HIGH) {
     // Run just the servo first for 1 second pulses. 
     if (servoState == LOW) {
       myServo.write(servoAngle);
-      previousMillis = currentMillis;
-      servoState == HIGH; 
+      servoPreviousMillis = currentMillis;
+      servoState = HIGH; 
     }
 
-    if (servoState == HIGH && currentMillis - previousMillis >= 1000) {
+    if (servoState == HIGH && currentMillis - servoPreviousMillis >= 1000) {
       myServo.write(0);
+      servoState = LOW; 
     }
 
-    // Run rest of intake system
-    analogWrite(intakePumpRelayPin, pumpVoltageScale);
-    digitalWrite(agitatorPin, HIGH);
-    digitalWrite(mixerPin, HIGH);
+    if (intakeState == LOW) {
+      // Run rest of intake system
+      analogWrite(intakePumpRelayPin, pumpVoltageScale);
+      digitalWrite(agitatorPin, HIGH);
+      digitalWrite(mixerPin, HIGH);
+      intakePreviousMillis = currentMillis;
+      intakeState = HIGH;
+      Serial.println("intake runnning");
+    }
 
+    if (intakeState == HIGH && currentMillis - intakePreviousMillis >= 3000) {
+      analogWrite(intakePumpRelayPin, LOW);
+      intakeState = LOW;
+    }
+
+  } else {
+    analogWrite(intakePumpRelayPin, LOW);
+    digitalWrite(mixerPin, LOW);
+    digitalWrite(agitatorPin, LOW);
+    myServo.write(0); 
   }
 
   // RUN OUTTAKE COMPONENTS
-  if (ch6Value = HIGH) {
-      analogWrite(outtakePumpRelayPin, pumpVoltageScale);
+  if (ch6Value == HIGH) {
+      if (outtakeState == LOW) {
+        analogWrite(outtakePumpRelayPin, pumpVoltageScale);
+        outtakePreviousMillis = currentMillis;
+        outtakeState = HIGH;
+        Serial.println("outtake runnning");
+      }
+      if (outtakeState == HIGH && currentMillis - outtakePreviousMillis >= 3000) {
+        analogWrite(outtakePumpRelayPin, LOW);
+        outtakeState = LOW;
+      }
+
+  } else { 
+      analogWrite(outtakePumpRelayPin, LOW);
   }
 
 
