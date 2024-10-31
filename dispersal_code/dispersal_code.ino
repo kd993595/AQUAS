@@ -17,13 +17,13 @@
 #define CH5 10
 #define CH6 11
 
-  // Integers to represent values from sticks and pots
-  //int ch1Value;
-  //int ch2Value;
-  //int ch3Value;
-  //int ch4Value;
+// Integers to represent values from sticks and pots
+//int ch1Value;
+//int ch2Value;
+//int ch3Value;
+//int ch4Value;
 
-  // Boolean to represent switch value
+// Boolean to represent switch value
 bool ch5Value;
 bool ch6Value;
 
@@ -41,7 +41,7 @@ const int agitatorPin = 8;
 const int servoPin = 9;
 Servo myServo;
 int servoAngle = 90;
-int servoState = 0; // 0 = closed, 1 = open. 
+int servoState = 0;  // 0 = closed, 1 = open.
 
 // Track time elapsed for synchronous sensing and actuation of components
 unsigned long currentMillis = 0;
@@ -70,7 +70,7 @@ bool readSwitch(byte channelInput, bool defaultValue) {
 void setup() {
   // Set up serial monitor
   Serial.begin(115200);
-  
+
   // Controller pin setup:
   //  pinMode(CH1, INPUT);
   //  pinMode(CH2, INPUT);
@@ -85,12 +85,11 @@ void setup() {
 
   // Servo setup
   myServo.attach(servoPin);
-  myServo.write(0); 
-  
+  myServo.write(0);
 }
 
 void loop() {
-  // Get current millis elapsed. 
+  // Get current millis elapsed.
   unsigned long currentMillis = millis();
 
 
@@ -105,16 +104,16 @@ void loop() {
 
   // RUN INTAKE COMPONENTS
   if (ch5Value == HIGH) {
-    // Run just the servo first for 1 second pulses. 
+    // Run just the servo first for 1 second pulses.
     if (servoState == LOW) {
       myServo.write(servoAngle);
       servoPreviousMillis = currentMillis;
-      servoState = HIGH; 
+      servoState = HIGH;
     }
 
     if (servoState == HIGH && currentMillis - servoPreviousMillis >= 1000) {
       myServo.write(0);
-      servoState = LOW; 
+      servoState = LOW;
     }
 
     if (intakeState == LOW) {
@@ -129,31 +128,34 @@ void loop() {
 
     if (intakeState == HIGH && currentMillis - intakePreviousMillis >= 3000) {
       analogWrite(intakePumpRelayPin, LOW);
+          digitalWrite(mixerPin, LOW);
+    digitalWrite(agitatorPin, LOW);
       intakeState = LOW;
     }
 
-  } else {
+  } 
+  else {
     analogWrite(intakePumpRelayPin, LOW);
     digitalWrite(mixerPin, LOW);
     digitalWrite(agitatorPin, LOW);
-    myServo.write(0); 
+    myServo.write(0);
   }
 
   // RUN OUTTAKE COMPONENTS
   if (ch6Value == HIGH) {
-      if (outtakeState == LOW) {
-        analogWrite(outtakePumpRelayPin, pumpVoltageScale);
-        outtakePreviousMillis = currentMillis;
-        outtakeState = HIGH;
-        Serial.println("outtake runnning");
-      }
-      if (outtakeState == HIGH && currentMillis - outtakePreviousMillis >= 3000) {
-        analogWrite(outtakePumpRelayPin, LOW);
-        outtakeState = LOW;
-      }
-
-  } else { 
+    if (outtakeState == LOW) {
+      analogWrite(outtakePumpRelayPin, pumpVoltageScale);
+      outtakePreviousMillis = currentMillis;
+      outtakeState = HIGH;
+      Serial.println("outtake runnning");
+    }
+    if (outtakeState == HIGH && currentMillis - outtakePreviousMillis >= 3000) {
       analogWrite(outtakePumpRelayPin, LOW);
+      outtakeState = LOW;
+    }
+
+  } else {
+    analogWrite(outtakePumpRelayPin, LOW);
   }
 
 
