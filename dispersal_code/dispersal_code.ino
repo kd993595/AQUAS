@@ -9,11 +9,11 @@
 
 #include <Servo.h>
 
-// Define Input Connections
-//#define CH1 3
+// Define Input Connections from the receiver
+#define CH2 A0
+#define CH3 A1
 //#define CH2 5
 //#define CH3 6
-//#define CH4 9
 #define CH5 10
 #define CH6 11
 
@@ -24,6 +24,8 @@
 //int ch4Value;
 
 // Boolean to represent switch value
+bool ch2Value;
+bool ch3Value;
 bool ch5Value;
 bool ch6Value;
 
@@ -34,6 +36,10 @@ const int pumpVoltageScale = 100;  // 0-255 analog signal for pwm control of pum
 // Keep track if intake or outtake mode is on.
 int intakeState = LOW;
 int outtakeState = LOW;
+
+// Motors
+const int leftMotorPin = 12;
+const int rightMotorPin = 13;
 
 // Powder resevoir and mixer components
 const int mixerPin = 7;
@@ -76,12 +82,23 @@ void setup() {
   //  pinMode(CH2, INPUT);
   //  pinMode(CH3, INPUT);
   //  pinMode(CH4, INPUT);
+  
+  // Pump input signal
   pinMode(CH5, INPUT);
   pinMode(CH6, INPUT);
 
-  // Pump pin setup
+  // Motor input signal
+  pinMode(CH2, INPUT);
+  pinMode(CH3, INPUT);
+
+  // Pump output signals
   pinMode(intakePumpRelayPin, OUTPUT);
   pinMode(outtakePumpRelayPin, OUTPUT);
+
+  // Motor output signal
+  pinMode(rightMotorPin, OUTPUT);
+  pinMode(leftMotorPin, OUTPUT);
+
 
   // Servo setup
   myServo.attach(servoPin);
@@ -95,12 +112,25 @@ void loop() {
 
   // Get values for each channel
   //  ch1Value = readChannel(CH1, -100, 100, 0);
-  //  ch2Value = readChannel(CH2, -100, 100, 0);
-  //  ch3Value = readChannel(CH3, -100, 100, -100);
   //  ch4Value = readChannel(CH4, -100, 100, 0);
   //  ch5Value = readChannel(CH5, -100, 100, 0);
+
+  // ch2Value = readChannel(CH2, -100, 100, 0);
+  // ch3Value = readChannel(CH3, -100, 100, -100);
+  ch2Value = readSwitch(CH2, false);
+  ch3Value = readSwitch(CH3, false);
   ch5Value = readSwitch(CH5, false);
   ch6Value = readSwitch(CH6, false);
+
+  // MOTORS
+  if (ch2Value > 10) {
+    digitalWrite(leftMotorPin, ch2Value);
+  }
+
+   if (ch3Value > 10) {
+    digitalWrite(rightMotorPin, ch3Value);
+  }
+
 
   // RUN INTAKE COMPONENTS
   if (ch5Value == HIGH) {
@@ -128,8 +158,8 @@ void loop() {
 
     if (intakeState == HIGH && currentMillis - intakePreviousMillis >= 3000) {
       analogWrite(intakePumpRelayPin, LOW);
-          digitalWrite(mixerPin, LOW);
-    digitalWrite(agitatorPin, LOW);
+      digitalWrite(mixerPin, LOW);
+      digitalWrite(agitatorPin, LOW);
       intakeState = LOW;
     }
 
@@ -171,5 +201,9 @@ void loop() {
   Serial.print(" | Ch5: ");
   Serial.print(ch5Value);
   Serial.print(" | Ch6: ");
-  Serial.println(ch6Value);
+  Serial.print(ch6Value);
+    Serial.print(" | Ch2: ");
+  Serial.print(ch2Value);
+  Serial.print(" | Ch3: ");
+  Serial.println(ch3Value);
 }
